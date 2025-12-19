@@ -12,21 +12,119 @@
         }
 
         body {
-            background-color: #191919;
-            color: #FFFFFF;
+            background-color: var(--bg-color, #191919);
+            color: var(--text-color, #FFFFFF);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .config-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            fill: var(--text-color, #FFFFFF);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .config-icon:hover {
+            fill: var(--accent-color, #FF8000);
+            transform: rotate(90deg);
+        }
+
+        .config-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background-color: rgba(25, 25, 25, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            border-left: 2px solid var(--accent-color, #FF8000);
+        }
+
+        .config-panel.open {
+            right: 0;
+        }
+
+        .config-panel h2 {
+            color: var(--text-color, #FFFFFF);
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .config-group {
+            margin-bottom: 25px;
+        }
+
+        .config-group label {
+            display: block;
+            color: var(--text-color, #FFFFFF);
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .config-group input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 2px solid var(--text-color, #FFFFFF);
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .config-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--text-color, #FFFFFF);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-color, #FFFFFF);
+            font-size: 16px;
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .config-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--text-color, #FFFFFF);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-color, #FFFFFF);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .config-buttons button:hover {
+            background: var(--accent-color, #FF8000);
+            border-color: var(--accent-color, #FF8000);
+            color: #191919;
         }
 
         .container {
             text-align: center;
             width: 100%;
             max-width: 600px;
-            transform-origin: center;
         }
 
         .timer-display {
@@ -34,7 +132,7 @@
             font-weight: 300;
             margin: 40px 0;
             letter-spacing: 4px;
-            color: #FFFFFF;
+            color: var(--text-color, #FFFFFF);
         }
 
         .timer-types {
@@ -46,8 +144,8 @@
 
         .timer-types button {
             background-color: transparent;
-            color: #FFFFFF;
-            border: 2px solid #FFFFFF;
+            color: var(--text-color, #FFFFFF);
+            border: 2px solid var(--text-color, #FFFFFF);
             padding: 12px 24px;
             font-size: 16px;
             border-radius: 8px;
@@ -59,129 +157,9 @@
         }
 
         .timer-types button:hover {
-            border-color: #FF8000;
+            border-color: var(--accent-color, #FF8000);
             background-color: rgba(255, 128, 0, 0.1);
         }
 
         .timer-types button.active {
-            background-color: #FF8000;
-            color: #191919;
-            border-color: #FF8000;
-            box-shadow: 0 0 20px rgba(255, 128, 0, 0.3);
-        }
-
-        .controls {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-        }
-
-        .controls button {
-            background-color: #FFFFFF;
-            color: #191919;
-            border: 2px solid #FFFFFF;
-            padding: 16px 48px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            flex: 1;
-            max-width: 180px;
-        }
-
-        .controls button:hover {
-            background-color: #FF8000;
-            border-color: #FF8000;
-            color: #191919;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 128, 0, 0.3);
-        }
-
-        .controls button:active {
-            transform: translateY(0);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="timer-display" id="timerDisplay">25:00</div>
-        
-        <div class="timer-types">
-            <button class="active" data-duration="1500" onclick="selectTimer('pomodoro', 1500)">Pomodoro</button>
-            <button data-duration="300" onclick="selectTimer('short', 300)">Short Break</button>
-            <button data-duration="900" onclick="selectTimer('long', 900)">Long Break</button>
-        </div>
-
-        <div class="controls">
-            <button id="startPauseBtn" onclick="toggleTimer()">Start</button>
-            <button onclick="restartTimer()">Restart</button>
-        </div>
-    </div>
-
-    <script>
-        let timeLeft = 1500;
-        let selectedDuration = 1500;
-        let timerInterval = null;
-        let isRunning = false;
-
-        function updateDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            document.getElementById('timerDisplay').textContent = 
-                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-
-        function selectTimer(type, duration) {
-            document.querySelectorAll('.timer-types button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            if (isRunning) {
-                toggleTimer();
-            }
-
-            selectedDuration = duration;
-            timeLeft = duration;
-            updateDisplay();
-        }
-
-        function toggleTimer() {
-            const btn = document.getElementById('startPauseBtn');
-            
-            if (isRunning) {
-                clearInterval(timerInterval);
-                btn.textContent = 'Start';
-                isRunning = false;
-            } else {
-                btn.textContent = 'Pause';
-                isRunning = true;
-                
-                timerInterval = setInterval(() => {
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        updateDisplay();
-                    } else {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        btn.textContent = 'Start';
-                        alert('Timer finished!');
-                    }
-                }, 1000);
-            }
-        }
-
-        function restartTimer() {
-            if (isRunning) {
-                clearInterval(timerInterval);
-                isRunning = false;
-                document.getElementById('startPauseBtn').textContent = 'Start';
-            }
-
-            timeLeft = selectedDuration;
-            updateDisplay();
-        }
-    </script>
-</body>
-</html>
+            background-color: var(--accent-color, #FF8000);
