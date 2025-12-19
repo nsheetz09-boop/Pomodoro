@@ -24,8 +24,9 @@
 
         .container {
             text-align: center;
-            max-width: 600px;
             width: 100%;
+            max-width: 600px;
+            transform-origin: center;
         }
 
         .timer-display {
@@ -33,6 +34,7 @@
             font-weight: 300;
             margin: 40px 0;
             letter-spacing: 4px;
+            color: #FFFFFF;
         }
 
         .timer-types {
@@ -40,7 +42,6 @@
             gap: 12px;
             justify-content: center;
             margin-bottom: 40px;
-            flex-wrap: wrap;
         }
 
         .timer-types button {
@@ -53,54 +54,52 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
+            flex: 1;
+            min-width: 120px;
         }
 
         .timer-types button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #FF8000;
+            background-color: rgba(255, 128, 0, 0.1);
         }
 
         .timer-types button.active {
-            background-color: #FFFFFF;
+            background-color: #FF8000;
             color: #191919;
+            border-color: #FF8000;
+            box-shadow: 0 0 20px rgba(255, 128, 0, 0.3);
         }
 
         .controls {
             display: flex;
             gap: 16px;
             justify-content: center;
-            flex-wrap: wrap;
         }
 
         .controls button {
             background-color: #FFFFFF;
             color: #191919;
-            border: none;
+            border: 2px solid #FFFFFF;
             padding: 16px 48px;
             font-size: 18px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            flex: 1;
+            max-width: 180px;
         }
 
         .controls button:hover {
-            background-color: #e0e0e0;
+            background-color: #FF8000;
+            border-color: #FF8000;
+            color: #191919;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 128, 0, 0.3);
         }
 
         .controls button:active {
             transform: translateY(0);
-        }
-
-        @media (max-width: 600px) {
-            .timer-display {
-                font-size: 64px;
-            }
-            
-            .timer-types button,
-            .controls button {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -121,7 +120,7 @@
     </div>
 
     <script>
-        let timeLeft = 1500; // Default 25 minutes in seconds
+        let timeLeft = 1500;
         let selectedDuration = 1500;
         let timerInterval = null;
         let isRunning = false;
@@ -134,18 +133,15 @@
         }
 
         function selectTimer(type, duration) {
-            // Update active button
             document.querySelectorAll('.timer-types button').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            // Stop timer if running
             if (isRunning) {
                 toggleTimer();
             }
 
-            // Set new duration
             selectedDuration = duration;
             timeLeft = duration;
             updateDisplay();
@@ -155,12 +151,10 @@
             const btn = document.getElementById('startPauseBtn');
             
             if (isRunning) {
-                // Pause
                 clearInterval(timerInterval);
                 btn.textContent = 'Start';
                 isRunning = false;
             } else {
-                // Start
                 btn.textContent = 'Pause';
                 isRunning = true;
                 
@@ -169,13 +163,9 @@
                         timeLeft--;
                         updateDisplay();
                     } else {
-                        // Timer finished
                         clearInterval(timerInterval);
                         isRunning = false;
                         btn.textContent = 'Start';
-                        
-                        // Optional: Play notification sound
-                        // You can add an audio element and play it here
                         alert('Timer finished!');
                     }
                 }, 1000);
@@ -183,14 +173,12 @@
         }
 
         function restartTimer() {
-            // Stop timer if running
             if (isRunning) {
                 clearInterval(timerInterval);
                 isRunning = false;
                 document.getElementById('startPauseBtn').textContent = 'Start';
             }
 
-            // Reset to selected duration
             timeLeft = selectedDuration;
             updateDisplay();
         }
