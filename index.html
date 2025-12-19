@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #191919;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .timer-display {
+            font-size: 96px;
+            font-weight: 300;
+            margin: 40px 0;
+            letter-spacing: 4px;
+        }
+
+        .timer-types {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .timer-types button {
+            background-color: transparent;
+            color: #FFFFFF;
+            border: 2px solid #FFFFFF;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .timer-types button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-types button.active {
+            background-color: #FFFFFF;
+            color: #191919;
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            background-color: #FFFFFF;
+            color: #191919;
+            border: none;
+            padding: 16px 48px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .controls button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .controls button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 64px;
+            }
+            
+            .timer-types button,
+            .controls button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        
+        <div class="timer-types">
+            <button class="active" data-duration="1500" onclick="selectTimer('pomodoro', 1500)">Pomodoro</button>
+            <button data-duration="300" onclick="selectTimer('short', 300)">Short Break</button>
+            <button data-duration="900" onclick="selectTimer('long', 900)">Long Break</button>
+        </div>
+
+        <div class="controls">
+            <button id="startPauseBtn" onclick="toggleTimer()">Start</button>
+            <button onclick="restartTimer()">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 1500; // Default 25 minutes in seconds
+        let selectedDuration = 1500;
+        let timerInterval = null;
+        let isRunning = false;
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function selectTimer(type, duration) {
+            // Update active button
+            document.querySelectorAll('.timer-types button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Stop timer if running
+            if (isRunning) {
+                toggleTimer();
+            }
+
+            // Set new duration
+            selectedDuration = duration;
+            timeLeft = duration;
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startPauseBtn');
+            
+            if (isRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                btn.textContent = 'Start';
+                isRunning = false;
+            } else {
+                // Start
+                btn.textContent = 'Pause';
+                isRunning = true;
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                    } else {
+                        // Timer finished
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        btn.textContent = 'Start';
+                        
+                        // Optional: Play notification sound
+                        // You can add an audio element and play it here
+                        alert('Timer finished!');
+                    }
+                }, 1000);
+            }
+        }
+
+        function restartTimer() {
+            // Stop timer if running
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                document.getElementById('startPauseBtn').textContent = 'Start';
+            }
+
+            // Reset to selected duration
+            timeLeft = selectedDuration;
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
