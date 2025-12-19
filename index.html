@@ -163,3 +163,280 @@
 
         .timer-types button.active {
             background-color: var(--accent-color, #FF8000);
+            color: #191919;
+            border-color: var(--accent-color, #FF8000);
+            box-shadow: 0 0 20px rgba(255, 128, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .controls button {
+            background-color: var(--text-color, #FFFFFF);
+            color: var(--bg-color, #191919);
+            border: 2px solid var(--text-color, #FFFFFF);
+            padding: 16px 48px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            flex: 1;
+            max-width: 180px;
+        }
+
+        .controls button:hover {
+            background-color: var(--accent-color, #FF8000);
+            border-color: var(--accent-color, #FF8000);
+            color: #191919;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 128, 0, 0.3);
+        }
+
+        .controls button:active {
+            transform: translateY(0);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 998;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Settings Icon -->
+    <svg class="config-icon" onclick="toggleConfig()" viewBox="0 0 24 24">
+        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+    </svg>
+
+    <!-- Overlay -->
+    <div class="overlay" onclick="toggleConfig()"></div>
+
+    <!-- Config Panel -->
+    <div class="config-panel" id="configPanel">
+        <h2>Settings</h2>
+        
+        <div class="config-group">
+            <label>Background Color</label>
+            <input type="color" id="bgColor" value="#191919">
+        </div>
+
+        <div class="config-group">
+            <label>Text Color</label>
+            <input type="color" id="textColor" value="#FFFFFF">
+        </div>
+
+        <div class="config-group">
+            <label>Accent Color</label>
+            <input type="color" id="accentColor" value="#FF8000">
+        </div>
+
+        <div class="config-group">
+            <label>Pomodoro Time (minutes)</label>
+            <input type="number" id="pomodoroTime" value="25" min="1" max="60">
+        </div>
+
+        <div class="config-group">
+            <label>Short Break Time (minutes)</label>
+            <input type="number" id="shortBreakTime" value="5" min="1" max="30">
+        </div>
+
+        <div class="config-group">
+            <label>Long Break Time (minutes)</label>
+            <input type="number" id="longBreakTime" value="15" min="1" max="60">
+        </div>
+
+        <div class="config-buttons">
+            <button onclick="resetSettings()">Reset</button>
+            <button onclick="saveSettings()">Save</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        
+        <div class="timer-types">
+            <button class="active" id="pomodoroBtn" onclick="selectTimer('pomodoro')">Pomodoro</button>
+            <button id="shortBtn" onclick="selectTimer('short')">Short Break</button>
+            <button id="longBtn" onclick="selectTimer('long')">Long Break</button>
+        </div>
+
+        <div class="controls">
+            <button id="startPauseBtn" onclick="toggleTimer()">Start</button>
+            <button onclick="restartTimer()">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Default settings
+        let settings = {
+            bgColor: '#191919',
+            textColor: '#FFFFFF',
+            accentColor: '#FF8000',
+            pomodoroTime: 25,
+            shortBreakTime: 5,
+            longBreakTime: 15
+        };
+
+        let timeLeft = 1500;
+        let selectedDuration = 1500;
+        let selectedType = 'pomodoro';
+        let timerInterval = null;
+        let isRunning = false;
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('pomodoroSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                applySettings();
+            }
+            updateInputs();
+        }
+
+        function applySettings() {
+            document.documentElement.style.setProperty('--bg-color', settings.bgColor);
+            document.documentElement.style.setProperty('--text-color', settings.textColor);
+            document.documentElement.style.setProperty('--accent-color', settings.accentColor);
+            
+            // Update timer durations
+            selectedDuration = settings.pomodoroTime * 60;
+            timeLeft = selectedDuration;
+            updateDisplay();
+        }
+
+        function updateInputs() {
+            document.getElementById('bgColor').value = settings.bgColor;
+            document.getElementById('textColor').value = settings.textColor;
+            document.getElementById('accentColor').value = settings.accentColor;
+            document.getElementById('pomodoroTime').value = settings.pomodoroTime;
+            document.getElementById('shortBreakTime').value = settings.shortBreakTime;
+            document.getElementById('longBreakTime').value = settings.longBreakTime;
+        }
+
+        function toggleConfig() {
+            const panel = document.getElementById('configPanel');
+            const overlay = document.querySelector('.overlay');
+            panel.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function saveSettings() {
+            settings.bgColor = document.getElementById('bgColor').value;
+            settings.textColor = document.getElementById('textColor').value;
+            settings.accentColor = document.getElementById('accentColor').value;
+            settings.pomodoroTime = parseInt(document.getElementById('pomodoroTime').value);
+            settings.shortBreakTime = parseInt(document.getElementById('shortBreakTime').value);
+            settings.longBreakTime = parseInt(document.getElementById('longBreakTime').value);
+
+            localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+            applySettings();
+            
+            // Update current timer if needed
+            selectTimer(selectedType);
+            toggleConfig();
+        }
+
+        function resetSettings() {
+            settings = {
+                bgColor: '#191919',
+                textColor: '#FFFFFF',
+                accentColor: '#FF8000',
+                pomodoroTime: 25,
+                shortBreakTime: 5,
+                longBreakTime: 15
+            };
+            updateInputs();
+            applySettings();
+            localStorage.removeItem('pomodoroSettings');
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function selectTimer(type) {
+            document.querySelectorAll('.timer-types button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            selectedType = type;
+            let duration;
+            
+            if (type === 'pomodoro') {
+                duration = settings.pomodoroTime * 60;
+                document.getElementById('pomodoroBtn').classList.add('active');
+            } else if (type === 'short') {
+                duration = settings.shortBreakTime * 60;
+                document.getElementById('shortBtn').classList.add('active');
+            } else {
+                duration = settings.longBreakTime * 60;
+                document.getElementById('longBtn').classList.add('active');
+            }
+
+            if (isRunning) {
+                toggleTimer();
+            }
+
+            selectedDuration = duration;
+            timeLeft = duration;
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startPauseBtn');
+            
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.textContent = 'Start';
+                isRunning = false;
+            } else {
+                btn.textContent = 'Pause';
+                isRunning = true;
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        btn.textContent = 'Start';
+                        alert('Timer finished!');
+                    }
+                }, 1000);
+            }
+        }
+
+        function restartTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                document.getElementById('startPauseBtn').textContent = 'Start';
+            }
+
+            timeLeft = selectedDuration;
+            updateDisplay();
+        }
+
+        // Initialize
+        loadSettings();
+    </script>
+</body>
+</html>
