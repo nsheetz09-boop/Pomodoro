@@ -128,14 +128,6 @@
             max-width: 400px;
         }
 
-        .timer-display {
-            font-size: 56px;
-            font-weight: 300;
-            margin: 20px 0;
-            letter-spacing: 2px;
-            color: var(--text-color, #FFFFFF);
-        }
-
         .timer-types {
             display: flex;
             gap: 6px;
@@ -167,11 +159,20 @@
             box-shadow: 0 0 15px rgba(255, 128, 0, 0.3);
         }
 
+        .timer-display {
+            font-size: 56px;
+            font-weight: 300;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            color: var(--text-color, #FFFFFF);
+        }
+
         .controls {
             display: flex;
             gap: 10px;
             justify-content: center;
             align-items: center;
+            margin-top: 16px;
         }
 
         .controls button {
@@ -277,14 +278,14 @@
     </div>
 
     <div class="container">
-        <div class="timer-display" id="timerDisplay">25:00</div>
-        
         <div class="timer-types">
             <button class="active" id="pomodoroBtn" onclick="selectTimer('pomodoro')">Pomodoro</button>
             <button id="shortBtn" onclick="selectTimer('short')">Short Break</button>
             <button id="longBtn" onclick="selectTimer('long')">Long Break</button>
         </div>
 
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        
         <div class="controls">
             <button id="startPauseBtn" onclick="toggleTimer()">Start</button>
             <svg class="restart-icon" onclick="restartTimer()" viewBox="0 0 24 24">
