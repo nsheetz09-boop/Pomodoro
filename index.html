@@ -89,13 +89,17 @@
             font-weight: 500;
         }
 
-        .config-group input[type="color"] {
+        .color-preview {
             width: 50%;
             height: 20px;
             border: 1px solid var(--text-color, #FFFFFF);
             border-radius: 5px;
             cursor: pointer;
-            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-preview:hover {
+            transform: scale(1.05);
         }
 
         .config-group input[type="number"] {
@@ -132,6 +136,106 @@
         .config-buttons button:hover {
             background: var(--accent-color, #FF8000);
             border-color: var(--accent-color, #FF8000);
+            color: #191919;
+        }
+
+        /* Custom Color Picker */
+        .color-picker-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .color-picker-overlay.active {
+            display: flex;
+        }
+
+        .color-picker-modal {
+            background: #2a2a2a;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            padding: 15px;
+            width: 200px;
+        }
+
+        .color-picker-modal h3 {
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .preset-colors {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .preset-color {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .preset-color:hover {
+            transform: scale(1.1);
+            border-color: #fff;
+        }
+
+        .hex-input-group {
+            margin-top: 10px;
+        }
+
+        .hex-input-group label {
+            color: #fff;
+            font-size: 9px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .hex-input-group input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .picker-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .picker-buttons button {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .picker-buttons button:hover {
+            background: #fff;
             color: #191919;
         }
 
@@ -221,6 +325,22 @@
     </style>
 </head>
 <body>
+    <!-- Color Picker Modal -->
+    <div class="color-picker-overlay" id="colorPickerOverlay" onclick="closeColorPicker(event)">
+        <div class="color-picker-modal" onclick="event.stopPropagation()">
+            <h3 id="colorPickerTitle">Select Color</h3>
+            <div class="preset-colors" id="presetColors"></div>
+            <div class="hex-input-group">
+                <label>Hex Code</label>
+                <input type="text" id="hexInput" placeholder="#FFFFFF" maxlength="7">
+            </div>
+            <div class="picker-buttons">
+                <button onclick="closeColorPicker()">Cancel</button>
+                <button onclick="applyColor()">Apply</button>
+            </div>
+        </div>
+    </div>
+
     <div class="wrapper">
         <!-- Timer View -->
         <div class="container" id="timerView">
@@ -251,17 +371,17 @@
                 <div>
                     <div class="config-group">
                         <label>Background Color</label>
-                        <input type="color" id="bgColor" value="#191919">
+                        <div class="color-preview" id="bgColorPreview" onclick="openColorPicker('bgColor', 'Background Color')"></div>
                     </div>
 
                     <div class="config-group">
                         <label>Text Color</label>
-                        <input type="color" id="textColor" value="#FFFFFF">
+                        <div class="color-preview" id="textColorPreview" onclick="openColorPicker('textColor', 'Text Color')"></div>
                     </div>
 
                     <div class="config-group">
                         <label>Accent Color</label>
-                        <input type="color" id="accentColor" value="#FF8000">
+                        <div class="color-preview" id="accentColorPreview" onclick="openColorPicker('accentColor', 'Accent Color')"></div>
                     </div>
                 </div>
 
@@ -291,6 +411,17 @@
     </div>
 
     <script>
+        // Preset colors
+        const presetColors = [
+            '#000000', '#191919', '#2a2a2a', '#3d3d3d', '#4f4f4f',
+            '#FFFFFF', '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0',
+            '#FF0000', '#FF8000', '#FFD700', '#00FF00', '#0000FF',
+            '#FF1493', '#9400D3', '#00CED1', '#FF6347', '#32CD32'
+        ];
+
+        let currentColorTarget = null;
+        let tempColor = null;
+
         // Default settings
         let settings = {
             bgColor: '#191919',
@@ -307,6 +438,52 @@
         let timerInterval = null;
         let isRunning = false;
 
+        // Initialize preset colors
+        function initPresetColors() {
+            const container = document.getElementById('presetColors');
+            presetColors.forEach(color => {
+                const colorDiv = document.createElement('div');
+                colorDiv.className = 'preset-color';
+                colorDiv.style.backgroundColor = color;
+                colorDiv.onclick = () => selectPresetColor(color);
+                container.appendChild(colorDiv);
+            });
+        }
+
+        function openColorPicker(target, title) {
+            currentColorTarget = target;
+            document.getElementById('colorPickerTitle').textContent = title;
+            document.getElementById('hexInput').value = settings[target];
+            document.getElementById('colorPickerOverlay').classList.add('active');
+        }
+
+        function closeColorPicker(event) {
+            if (event && event.target !== document.getElementById('colorPickerOverlay')) return;
+            document.getElementById('colorPickerOverlay').classList.remove('active');
+            currentColorTarget = null;
+        }
+
+        function selectPresetColor(color) {
+            document.getElementById('hexInput').value = color;
+        }
+
+        function applyColor() {
+            const hexValue = document.getElementById('hexInput').value;
+            if (/^#[0-9A-F]{6}$/i.test(hexValue)) {
+                settings[currentColorTarget] = hexValue;
+                updateColorPreviews();
+                closeColorPicker();
+            } else {
+                alert('Please enter a valid hex color (e.g., #FF8000)');
+            }
+        }
+
+        function updateColorPreviews() {
+            document.getElementById('bgColorPreview').style.backgroundColor = settings.bgColor;
+            document.getElementById('textColorPreview').style.backgroundColor = settings.textColor;
+            document.getElementById('accentColorPreview').style.backgroundColor = settings.accentColor;
+        }
+
         // Load settings from localStorage
         function loadSettings() {
             const saved = localStorage.getItem('pomodoroSettings');
@@ -315,6 +492,7 @@
                 applySettings();
             }
             updateInputs();
+            updateColorPreviews();
         }
 
         function applySettings() {
@@ -322,16 +500,12 @@
             document.documentElement.style.setProperty('--text-color', settings.textColor);
             document.documentElement.style.setProperty('--accent-color', settings.accentColor);
             
-            // Update timer durations
             selectedDuration = settings.pomodoroTime * 60;
             timeLeft = selectedDuration;
             updateDisplay();
         }
 
         function updateInputs() {
-            document.getElementById('bgColor').value = settings.bgColor;
-            document.getElementById('textColor').value = settings.textColor;
-            document.getElementById('accentColor').value = settings.accentColor;
             document.getElementById('pomodoroTime').value = settings.pomodoroTime;
             document.getElementById('shortBreakTime').value = settings.shortBreakTime;
             document.getElementById('longBreakTime').value = settings.longBreakTime;
@@ -346,9 +520,6 @@
         }
 
         function saveSettings() {
-            settings.bgColor = document.getElementById('bgColor').value;
-            settings.textColor = document.getElementById('textColor').value;
-            settings.accentColor = document.getElementById('accentColor').value;
             settings.pomodoroTime = parseInt(document.getElementById('pomodoroTime').value);
             settings.shortBreakTime = parseInt(document.getElementById('shortBreakTime').value);
             settings.longBreakTime = parseInt(document.getElementById('longBreakTime').value);
@@ -356,7 +527,6 @@
             localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
             applySettings();
             
-            // Update current timer if needed
             selectTimer(selectedType);
             toggleConfig();
         }
@@ -371,6 +541,7 @@
                 longBreakTime: 15
             };
             updateInputs();
+            updateColorPreviews();
             applySettings();
             localStorage.removeItem('pomodoroSettings');
         }
@@ -447,6 +618,7 @@
         }
 
         // Initialize
+        initPresetColors();
         loadSettings();
     </script>
 </body>
